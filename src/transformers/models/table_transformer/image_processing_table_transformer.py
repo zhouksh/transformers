@@ -507,7 +507,7 @@ def post_process_panoptic_sample(
     threshold=0.85,
 ) -> Dict:
     """
-    Converts the output of [`DetrForSegmentation`] into panoptic segmentation predictions for a single sample.
+    Converts the output of [`TableTransformerForSegmentation`] into panoptic segmentation predictions for a single sample.
 
     Args:
         out_logits (`torch.Tensor`):
@@ -784,9 +784,9 @@ def compute_segments(
     return segmentation, segments
 
 
-class DetrImageProcessor(BaseImageProcessor):
+class TableTransformerImageProcessor(BaseImageProcessor):
     r"""
-    Constructs a Detr image processor.
+    Constructs a TableTransformer image processor.
 
     Args:
         format (`str`, *optional*, defaults to `"coco_detection"`):
@@ -913,7 +913,7 @@ class DetrImageProcessor(BaseImageProcessor):
     def from_dict(cls, image_processor_dict: Dict[str, Any], **kwargs):
         """
         Overrides the `from_dict` method from the base class to make sure parameters are updated if image processor is
-        created using from_dict and kwargs e.g. `DetrImageProcessor.from_pretrained(checkpoint, size=600,
+        created using from_dict and kwargs e.g. `TableTransformerImageProcessor.from_pretrained(checkpoint, size=600,
         max_size=800)`
         """
         image_processor_dict = image_processor_dict.copy()
@@ -1501,11 +1501,11 @@ class DetrImageProcessor(BaseImageProcessor):
     # inspired by https://github.com/facebookresearch/detr/blob/master/models/detr.py#L258
     def post_process(self, outputs, target_sizes):
         """
-        Converts the raw output of [`DetrForObjectDetection`] into final bounding boxes in (top_left_x, top_left_y,
+        Converts the raw output of [`TableTransformerForObjectDetection`] into final bounding boxes in (top_left_x, top_left_y,
         bottom_right_x, bottom_right_y) format. Only supports PyTorch.
 
         Args:
-            outputs ([`DetrObjectDetectionOutput`]):
+            outputs ([`TableTransformerObjectDetectionOutput`]):
                 Raw outputs of the model.
             target_sizes (`torch.Tensor` of shape `(batch_size, 2)`):
                 Tensor containing the size (height, width) of each image of the batch. For evaluation, this must be the
@@ -1542,10 +1542,10 @@ class DetrImageProcessor(BaseImageProcessor):
 
     def post_process_segmentation(self, outputs, target_sizes, threshold=0.9, mask_threshold=0.5):
         """
-        Converts the output of [`DetrForSegmentation`] into image segmentation predictions. Only supports PyTorch.
+        Converts the output of [`TableTransformerForSegmentation`] into image segmentation predictions. Only supports PyTorch.
 
         Args:
-            outputs ([`DetrSegmentationOutput`]):
+            outputs ([`TableTransformerSegmentationOutput`]):
                 Raw outputs of the model.
             target_sizes (`torch.Tensor` of shape `(batch_size, 2)` or `List[Tuple]` of length `batch_size`):
                 Torch Tensor (or list) corresponding to the requested final size (h, w) of each prediction.
@@ -1587,13 +1587,13 @@ class DetrImageProcessor(BaseImageProcessor):
     # inspired by https://github.com/facebookresearch/detr/blob/master/models/segmentation.py#L218
     def post_process_instance(self, results, outputs, orig_target_sizes, max_target_sizes, threshold=0.5):
         """
-        Converts the output of [`DetrForSegmentation`] into actual instance segmentation predictions. Only supports
+        Converts the output of [`TableTransformerForSegmentation`] into actual instance segmentation predictions. Only supports
         PyTorch.
 
         Args:
             results (`List[Dict]`):
-                Results list obtained by [`~DetrImageProcessor.post_process`], to which "masks" results will be added.
-            outputs ([`DetrSegmentationOutput`]):
+                Results list obtained by [`~TableTransformerImageProcessor.post_process`], to which "masks" results will be added.
+            outputs ([`TableTransformerSegmentationOutput`]):
                 Raw outputs of the model.
             orig_target_sizes (`torch.Tensor` of shape `(batch_size, 2)`):
                 Tensor containing the size (h, w) of each image of the batch. For evaluation, this must be the original
@@ -1633,10 +1633,10 @@ class DetrImageProcessor(BaseImageProcessor):
     # inspired by https://github.com/facebookresearch/detr/blob/master/models/segmentation.py#L241
     def post_process_panoptic(self, outputs, processed_sizes, target_sizes=None, is_thing_map=None, threshold=0.85):
         """
-        Converts the output of [`DetrForSegmentation`] into actual panoptic predictions. Only supports PyTorch.
+        Converts the output of [`TableTransformerForSegmentation`] into actual panoptic predictions. Only supports PyTorch.
 
         Args:
-            outputs ([`DetrSegmentationOutput`]):
+            outputs ([`TableTransformerSegmentationOutput`]):
                 Raw outputs of the model.
             processed_sizes (`torch.Tensor` of shape `(batch_size, 2)` or `List[Tuple]` of length `batch_size`):
                 Torch Tensor (or list) containing the size (h, w) of each image of the batch, i.e. the size after data
@@ -1773,11 +1773,11 @@ class DetrImageProcessor(BaseImageProcessor):
         self, outputs, threshold: float = 0.5, target_sizes: Union[TensorType, List[Tuple]] = None
     ):
         """
-        Converts the raw output of [`DetrForObjectDetection`] into final bounding boxes in (top_left_x, top_left_y,
+        Converts the raw output of [`TableTransformerForObjectDetection`] into final bounding boxes in (top_left_x, top_left_y,
         bottom_right_x, bottom_right_y) format. Only supports PyTorch.
 
         Args:
-            outputs ([`DetrObjectDetectionOutput`]):
+            outputs ([`TableTransformerObjectDetectionOutput`]):
                 Raw outputs of the model.
             threshold (`float`, *optional*):
                 Score threshold to keep object detection predictions.
@@ -1824,10 +1824,10 @@ class DetrImageProcessor(BaseImageProcessor):
 
     def post_process_semantic_segmentation(self, outputs, target_sizes: List[Tuple[int, int]] = None):
         """
-        Converts the output of [`DetrForSegmentation`] into semantic segmentation maps. Only supports PyTorch.
+        Converts the output of [`TableTransformerForSegmentation`] into semantic segmentation maps. Only supports PyTorch.
 
         Args:
-            outputs ([`DetrForSegmentation`]):
+            outputs ([`TableTransformerForSegmentation`]):
                 Raw outputs of the model.
             target_sizes (`List[Tuple[int, int]]`, *optional*):
                 A list of tuples (`Tuple[int, int]`) containing the target size (height, width) of each image in the
@@ -1880,10 +1880,10 @@ class DetrImageProcessor(BaseImageProcessor):
         return_coco_annotation: Optional[bool] = False,
     ) -> List[Dict]:
         """
-        Converts the output of [`DetrForSegmentation`] into instance segmentation predictions. Only supports PyTorch.
+        Converts the output of [`TableTransformerForSegmentation`] into instance segmentation predictions. Only supports PyTorch.
 
         Args:
-            outputs ([`DetrForSegmentation`]):
+            outputs ([`TableTransformerForSegmentation`]):
                 Raw outputs of the model.
             threshold (`float`, *optional*, defaults to 0.5):
                 The probability score threshold to keep predicted instance masks.
@@ -1964,12 +1964,12 @@ class DetrImageProcessor(BaseImageProcessor):
         target_sizes: Optional[List[Tuple[int, int]]] = None,
     ) -> List[Dict]:
         """
-        Converts the output of [`DetrForSegmentation`] into image panoptic segmentation predictions. Only supports
+        Converts the output of [`TableTransformerForSegmentation`] into image panoptic segmentation predictions. Only supports
         PyTorch.
 
         Args:
-            outputs ([`DetrForSegmentation`]):
-                The outputs from [`DetrForSegmentation`].
+            outputs ([`TableTransformerForSegmentation`]):
+                The outputs from [`TableTransformerForSegmentation`].
             threshold (`float`, *optional*, defaults to 0.5):
                 The probability score threshold to keep predicted instance masks.
             mask_threshold (`float`, *optional*, defaults to 0.5):
@@ -2043,4 +2043,4 @@ class DetrImageProcessor(BaseImageProcessor):
         return results
 
 
-__all__ = ["DetrImageProcessor"]
+__all__ = ["TableTransformerImageProcessor"]

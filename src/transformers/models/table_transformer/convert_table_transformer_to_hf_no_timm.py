@@ -25,6 +25,7 @@ from huggingface_hub import hf_hub_download
 from PIL import Image
 from torchvision.transforms import functional as F
 
+from transformers import TableTransformerImageProcessor
 from transformers import DetrImageProcessor, ResNetConfig, TableTransformerConfig, TableTransformerForObjectDetection
 from transformers.utils import logging
 
@@ -297,6 +298,22 @@ def normalize(image):
     image = F.normalize(image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return image
 
+def check_image_processor(checkpoint_url):
+    target_max_size = 800 if "detection" in checkpoint_url else 1000
+    image_processor = TableTransformerImageProcessor(format="coco_detection", 
+                                                     size={"max_height": target_max_size, "max_width": target_max_size},
+                                                     do_pad=False)
+    filename = "example_pdf.png" if "detection" in checkpoint_url else "example_table.png"
+    file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename=filename)
+    
+    image = Image.open(file_path).convert("RGB")
+    original_pixel_values = normalize(resize(image, checkpoint_url))
+    pixel_values = image_processor(image, return_tensors='pt').pixel_values[0]
+    print('pixel_values shape:', pixel_values.size()) 
+    print(pixel_values)
+    print('original shape:', original_pixel_values.size()) 
+    print(original_pixel_values)
+    assert torch.allclose(original_pixel_values, pixel_values)
 
 @torch.no_grad()
 def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_path, push_to_hub):
@@ -360,7 +377,9 @@ def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_pat
         config.id2label = id2label
         config.label2id = {v: k for k, v in id2label.items()}
 
-    image_processor = DetrImageProcessor(format="coco_detection", size={"longest_edge": 800})
+
+
+    image_processor = TableTransformerImageProcessor(format="coco_detection", size={"longest_edge": 800})
     model = TableTransformerForObjectDetection(config)
     model.load_state_dict(state_dict)
     model.eval()
@@ -368,10 +387,13 @@ def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_pat
     # verify our conversion
     filename = "example_pdf.png" if "detection" in checkpoint_url else "example_table.png"
     file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename=filename)
+    
     image = Image.open(file_path).convert("RGB")
-    pixel_values = normalize(resize(image, checkpoint_url)).unsqueeze(0)
+    original_pixel_values = normalize(resize(image, checkpoint_url)).unsqueeze(0)
+    pixel_values = image_processor(image, return_type='pt').pixel_values
+    assert torch.allclose(original_pixel_values, pixel_values)
 
-    outputs = model(pixel_values)
+    outputs = model(original_pixel_values)
 
     if "detection" in checkpoint_url:
         expected_shape = (1, 15, 3)
@@ -431,4 +453,5 @@ if __name__ == "__main__":
         "--push_to_hub", action="store_true", help="Whether or not to push the converted model to the 🤗 hub."
     )
     args = parser.parse_args()
-    convert_table_transformer_checkpoint(args.checkpoint_url, args.pytorch_dump_folder_path, args.push_to_hub)
+    #convert_table_transformer_checkpoint(args.checkpoint_url, args.pytorch_dump_folder_path, args.push_to_hub)
+    check_image_processor(args.checkpoint_url)
