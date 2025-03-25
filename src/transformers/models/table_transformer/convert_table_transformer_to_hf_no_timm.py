@@ -28,6 +28,7 @@ from torchvision.transforms import functional as F
 from transformers import TableTransformerImageProcessor
 from transformers import DetrImageProcessor, ResNetConfig, TableTransformerConfig, TableTransformerForObjectDetection
 from transformers.utils import logging
+from transformers.image_utils import PILImageResampling
 
 
 logging.set_verbosity_info()
@@ -283,7 +284,8 @@ def read_in_q_k_v(state_dict, is_panoptic=False):
         state_dict[f"decoder.layers.{i}.encoder_attn.v_proj.bias"] = in_proj_bias_cross_attn[-256:]
 
 
-def resize(image, checkpoint_url):
+def resize(image: Image.Image, checkpoint_url):
+#   return image
     width, height = image.size
     current_max_size = max(width, height)
     target_max_size = 800 if "detection" in checkpoint_url else 1000
@@ -294,15 +296,23 @@ def resize(image, checkpoint_url):
 
 
 def normalize(image):
-    image = F.to_tensor(image)
+    image = F.to_tensor(image) # 3, h, w
     image = F.normalize(image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return image
 
 def check_image_processor(checkpoint_url):
+    """
+    original: 先resize，再归一化到0~1，格式为（C x H x W ）    
+    """
     target_max_size = 800 if "detection" in checkpoint_url else 1000
     image_processor = TableTransformerImageProcessor(format="coco_detection", 
                                                      size={"max_height": target_max_size, "max_width": target_max_size},
-                                                     do_pad=False)
+                                                     do_pad=False,
+                                                     do_normalize=True,
+                                                     do_resize=True,
+                                                     do_rescale=True,
+                                                     resample=PILImageResampling.BICUBIC,
+                                                     )
     filename = "example_pdf.png" if "detection" in checkpoint_url else "example_table.png"
     file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename=filename)
     
