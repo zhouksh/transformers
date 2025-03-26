@@ -143,7 +143,7 @@ else:
             ("swin", ("ViTImageProcessor", "ViTImageProcessorFast")),
             ("swin2sr", ("Swin2SRImageProcessor",)),
             ("swinv2", ("ViTImageProcessor", "ViTImageProcessorFast")),
-            ("table-transformer", ("DetrImageProcessor",)),
+            ("table-transformer", ("TableTransformerProcessor",)),
             ("timesformer", ("VideoMAEImageProcessor",)),
             ("timm_wrapper", ("TimmWrapperImageProcessor",)),
             ("tvlt", ("TvltImageProcessor",)),
