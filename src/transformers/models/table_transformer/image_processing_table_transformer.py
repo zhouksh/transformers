@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Image processor class for DETR."""
+# Copied from transformers/models/detr/image_processing_detr.py
+"""Image processor class for TableTransformer."""
 
 import io
 import pathlib
@@ -327,7 +328,7 @@ def prepare_coco_detection_annotation(
     input_data_format: Optional[Union[ChannelDimension, str]] = None,
 ):
     """
-    Convert the target in COCO format into the format expected by DETR.
+    Convert the target in COCO format into the format expected by TableTransformer.
     """
     image_height, image_width = get_image_size(image, channel_dim=input_data_format)
 
@@ -422,7 +423,7 @@ def prepare_coco_panoptic_annotation(
     input_data_format: Union[ChannelDimension, str] = None,
 ) -> Dict:
     """
-    Prepare a coco panoptic annotation for DETR.
+    Prepare a coco panoptic annotation for TableTransformer.
     """
     image_height, image_width = get_image_size(image, channel_dim=input_data_format)
     annotation_path = pathlib.Path(masks_path) / target["file_name"]
@@ -823,7 +824,7 @@ class TableTransformerImageProcessor(BaseImageProcessor):
             Standard deviation values to use when normalizing the image. Can be a single value or a list of values, one
             for each channel. Can be overridden by the `image_std` parameter in the `preprocess` method.
         do_convert_annotations (`bool`, *optional*, defaults to `True`):
-            Controls whether to convert the annotations to the format expected by the DETR model. Converts the
+            Controls whether to convert the annotations to the format expected by the TableTransformer model. Converts the
             bounding boxes to the format `(center_x, center_y, width, height)` and in the range `[0, 1]`.
             Can be overridden by the `do_convert_annotations` parameter in the `preprocess` method.
         do_pad (`bool`, *optional*, defaults to `True`):
@@ -933,7 +934,7 @@ class TableTransformerImageProcessor(BaseImageProcessor):
         input_data_format: Optional[Union[str, ChannelDimension]] = None,
     ) -> Dict:
         """
-        Prepare an annotation for feeding into DETR model.
+        Prepare an annotation for feeding into TableTransformer model.
         """
         format = format if format is not None else self.format
 
@@ -1416,7 +1417,7 @@ class TableTransformerImageProcessor(BaseImageProcessor):
             # We assume that all images have the same channel dimension format.
             input_data_format = infer_channel_dimension_format(images[0])
 
-        # prepare (COCO annotations as a list of Dict -> DETR target as a single Dict per image)
+        # prepare (COCO annotations as a list of Dict -> TableTransformer target as a single Dict per image)
         if annotations is not None:
             prepared_images = []
             prepared_annotations = []
