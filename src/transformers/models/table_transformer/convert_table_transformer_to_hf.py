@@ -26,7 +26,7 @@ from huggingface_hub import hf_hub_download
 from PIL import Image
 from torchvision.transforms import functional as F
 
-from transformers import TableTransformerImageProcessor, TableTransformerConfig, TableTransformerForObjectDetection
+from transformers import TableTransformerConfig, TableTransformerForObjectDetection, TableTransformerImageProcessor
 from transformers.image_utils import PILImageResampling
 from transformers.utils import logging
 
@@ -243,11 +243,12 @@ def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_pat
         config.label2id = {v: k for k, v in id2label.items()}
 
     target_max_size = 800 if "detection" in checkpoint_url else 1000
-    image_processor = TableTransformerImageProcessor(format="coco_detection", 
-                                                     size={"max_height": target_max_size, "max_width": target_max_size},
-                                                     do_pad=False,
-                                                     resample=PILImageResampling.BICUBIC,
-                                                     )
+    image_processor = TableTransformerImageProcessor(
+        format="coco_detection",
+        size={"max_height": target_max_size, "max_width": target_max_size},
+        do_pad=False,
+        resample=PILImageResampling.BICUBIC,
+    )
     model = TableTransformerForObjectDetection(config)
     model.load_state_dict(state_dict)
     model.eval()
@@ -257,7 +258,7 @@ def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_pat
     file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename=filename)
     image = Image.open(file_path).convert("RGB")
     original_pixel_values = normalize(resize(image, checkpoint_url)).unsqueeze(0)
-    pixel_values = image_processor(image, return_type='pt').pixel_values
+    pixel_values = image_processor(image, return_type="pt").pixel_values
     assert torch.allclose(original_pixel_values, pixel_values)
 
     outputs = model(pixel_values)

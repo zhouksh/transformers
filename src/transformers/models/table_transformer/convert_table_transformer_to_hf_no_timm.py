@@ -25,10 +25,14 @@ from huggingface_hub import hf_hub_download
 from PIL import Image
 from torchvision.transforms import functional as F
 
-from transformers import TableTransformerImageProcessor
-from transformers import DetrImageProcessor, ResNetConfig, TableTransformerConfig, TableTransformerForObjectDetection
-from transformers.utils import logging
+from transformers import (
+    ResNetConfig,
+    TableTransformerConfig,
+    TableTransformerForObjectDetection,
+    TableTransformerImageProcessor,
+)
 from transformers.image_utils import PILImageResampling
+from transformers.utils import logging
 
 
 logging.set_verbosity_info()
@@ -285,7 +289,7 @@ def read_in_q_k_v(state_dict, is_panoptic=False):
 
 
 def resize(image: Image.Image, checkpoint_url):
-#   return image
+    #   return image
     width, height = image.size
     current_max_size = max(width, height)
     target_max_size = 800 if "detection" in checkpoint_url else 1000
@@ -296,9 +300,10 @@ def resize(image: Image.Image, checkpoint_url):
 
 
 def normalize(image):
-    image = F.to_tensor(image) # 3, h, w
+    image = F.to_tensor(image)  # 3, h, w
     image = F.normalize(image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return image
+
 
 @torch.no_grad()
 def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_path, push_to_hub):
@@ -362,13 +367,13 @@ def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_pat
         config.id2label = id2label
         config.label2id = {v: k for k, v in id2label.items()}
 
-
     target_max_size = 800 if "detection" in checkpoint_url else 1000
-    image_processor = TableTransformerImageProcessor(format="coco_detection", 
-                                                     size={"max_height": target_max_size, "max_width": target_max_size},
-                                                     do_pad=False,
-                                                     resample=PILImageResampling.BICUBIC,
-                                                     )
+    image_processor = TableTransformerImageProcessor(
+        format="coco_detection",
+        size={"max_height": target_max_size, "max_width": target_max_size},
+        do_pad=False,
+        resample=PILImageResampling.BICUBIC,
+    )
 
     model = TableTransformerForObjectDetection(config)
     model.load_state_dict(state_dict)
@@ -377,10 +382,10 @@ def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_pat
     # verify our conversion
     filename = "example_pdf.png" if "detection" in checkpoint_url else "example_table.png"
     file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename=filename)
-    
+
     image = Image.open(file_path).convert("RGB")
     original_pixel_values = normalize(resize(image, checkpoint_url)).unsqueeze(0)
-    pixel_values = image_processor(image, return_type='pt').pixel_values
+    pixel_values = image_processor(image, return_type="pt").pixel_values
     assert torch.allclose(original_pixel_values, pixel_values)
 
     outputs = model(original_pixel_values)
