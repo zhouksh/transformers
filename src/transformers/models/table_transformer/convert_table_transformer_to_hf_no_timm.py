@@ -300,21 +300,6 @@ def normalize(image):
     image = F.normalize(image, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return image
 
-def check_image_processor(checkpoint_url):
-    target_max_size = 800 if "detection" in checkpoint_url else 1000
-    image_processor = TableTransformerImageProcessor(format="coco_detection", 
-                                                     size={"max_height": target_max_size, "max_width": target_max_size},
-                                                     do_pad=False,
-                                                     resample=PILImageResampling.BICUBIC,
-                                                     )
-    filename = "example_pdf.png" if "detection" in checkpoint_url else "example_table.png"
-    file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename=filename)
-    
-    image = Image.open(file_path).convert("RGB")
-    original_pixel_values = normalize(resize(image, checkpoint_url)).unsqueeze(0)
-    pixel_values = image_processor(image, return_tensors='pt').pixel_values
-    assert torch.allclose(original_pixel_values, pixel_values)
-
 @torch.no_grad()
 def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_path, push_to_hub):
     """

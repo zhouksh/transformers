@@ -256,7 +256,9 @@ def convert_table_transformer_checkpoint(checkpoint_url, pytorch_dump_folder_pat
     filename = "example_pdf.png" if "detection" in checkpoint_url else "example_table.png"
     file_path = hf_hub_download(repo_id="nielsr/example-pdf", repo_type="dataset", filename=filename)
     image = Image.open(file_path).convert("RGB")
-    pixel_values = normalize(resize(image, checkpoint_url)).unsqueeze(0)
+    original_pixel_values = normalize(resize(image, checkpoint_url)).unsqueeze(0)
+    pixel_values = image_processor(image, return_type='pt').pixel_values
+    assert torch.allclose(original_pixel_values, pixel_values)
 
     outputs = model(pixel_values)
 
